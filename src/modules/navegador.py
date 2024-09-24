@@ -142,7 +142,9 @@ def search_doc(browser: webdriver.Chrome, documento: str, logging, actions: Acti
         time.sleep(6)
         browser.switch_to.default_content()
 
-        search_econta_doc(browser, actions, logging)
+        resultado_busca = search_econta_doc(browser, actions, logging)
+        print(resultado_busca)
+        
         browser = ir_novoatendimento(browser)
         time.sleep(6)
 
@@ -278,7 +280,7 @@ if (produtoElement) {
         if resultado == "Produto encontrado e clicado":
             actions = ActionChains(browser)
             # botao apresentando problema no click
-            elemento_avancar = browser.find_element(By.NAME, 'MainNovoAtendimento_pyDisplayHarness_82')
+            elemento_avancar = browser.find_element(By.NAME, 'MainNovoAtendimento_pyDisplayHarness_83')
             data_click_value = elemento_avancar.get_attribute('data-click')
             actions.move_to_element(elemento_avancar).click().perform()
             if data_click_value:
@@ -287,7 +289,7 @@ if (produtoElement) {
                 div_nao_elegivel = browser.find_element(By.XPATH, "//span[contains(text(), 'Esse produto não é elegível para migração. Somente para novo endereço')]")
                 time.sleep(3)
                 if div_nao_elegivel.is_displayed():
-                    elemento_avancar = browser.find_element(By.NAME, 'MainNovoAtendimento_pyDisplayHarness_82')
+                    elemento_avancar = browser.find_element(By.NAME, 'MainNovoAtendimento_pyDisplayHarness_83')
                     data_click_value = elemento_avancar.get_attribute('data-click')
                     time.sleep(1)
                     actions.move_to_element(elemento_avancar).click().perform()
@@ -388,70 +390,146 @@ def ir_novoatendimento(browser: webdriver.Chrome):
         print(f"Falha ao clicar no botão 'NOVO ATENDIMENTO', detalhes: {str(e)}")
     return browser
 
-def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento: str):
+def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento: str, index):
     time.sleep(2)
     cnpj = str(documento)
-    pesquisa_menu_btn = WebDriverWait(browser, 20).until(
-        EC.presence_of_element_located((By.XPATH, "//a[@data-ascii='Pesquisa']"))
-    )
-    try:
-        actions.move_to_element(pesquisa_menu_btn).click().perform()
-    except:
-        pesquisa_menu_btn.click()
-    print("Botao de pesquisa")
-    time.sleep(2)
-
-    cnpj_search_btn = WebDriverWait(browser, 20).until(
-        EC.presence_of_element_located((By.XPATH, "//a[@data-ascii='CNPJ/Raiz']"))
-    )
-    try:
-        actions.move_to_element(cnpj_search_btn).click().perform()
-    except:
-        cnpj_search_btn.click()
-    print("Botao de CNPJ/Raiz")
-    time.sleep(2)
-    
-    cnpj_search_input = WebDriverWait(browser, 20).until(
-        EC.presence_of_element_located((By.XPATH, "//*[@id='cnpj-raiz']"))
-    )
-    time.sleep(2)
-    cnpj_search_input.send_keys(documento)
-    print("CNPJ Digitado")
-    time.sleep(2)
-    
-    search_btn = WebDriverWait(browser, 20).until(
-        EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Pesquisar')]"))
-    )
-    try:
-        actions.move_to_element(search_btn).click().perform()
-    except:
-        search_btn.click()
-    time.sleep(6)
-    print("Botao Pesquisar")
-
-    result_num = WebDriverWait(browser, 20).until(
-        EC.presence_of_element_located((By.XPATH, "//*[@data-html-qtdregistro]"))
-    )
-    print(f"Resultado da pesquisa {result_num.text}")
-    time.sleep(2)
-    
-    if result_num.text == '1':
-        result_grid = WebDriverWait(browser, 20).until(
-            EC.presence_of_element_located((By.XPATH, "//*[@class='resultado pesquisa-resultado']"))
+    if index == 0:
+        pesquisa_menu_btn = WebDriverWait(browser, 20).until(
+            EC.presence_of_element_located((By.XPATH, "//a[@data-ascii='Pesquisa']"))
         )
+        try:
+            pesquisa_menu_btn.click()
+        except:
+            actions.move_to_element(pesquisa_menu_btn).click().perform()
+        print("Botao de pesquisa")
+        
         time.sleep(2)
-        # Pegar tamanho da tabela e ver se da pra pegar o ultimo elemento com base no tamanho da tabela pelo xpath
-        datas_faturas_ativas = result_grid.find_elements(By.XPATH, "//*[contains(text(), '/')]")
-        lista_datas = []
-        for i in datas_faturas_ativas:
-            valor = i.text
-            if valor != '':
-                lista_datas.append(valor)
-        lista_datas = lista_datas[1:]
-        product = browser.find_elements(By.XPATH, "//*[contains(text(), 'MOVEL') or contains(text(), 'FIXO')]")
-        nome_produto = product[0].text
-        nome = "EMPRESA TESTE"
-    
+
+        cnpj_search_btn = WebDriverWait(browser, 20).until(
+            EC.presence_of_element_located((By.XPATH, "//a[@data-ascii='CNPJ/Raiz']"))
+        )
+
+        try:
+            cnpj_search_btn.click()
+        except:
+            actions.move_to_element(cnpj_search_btn).click().perform()
+        print("Botao de CNPJ/Raiz")
+        
+        time.sleep(2)
+        
+        try:
+            cnpj_search_input = WebDriverWait(browser, 20).until(
+                EC.presence_of_element_located((By.XPATH, "//*[@id='cnpj-raiz']"))
+            )
+            time.sleep(2)
+            cnpj_search_input.send_keys(documento)
+            print("CNPJ Digitado")
+        except Exception as e:
+            print(f"Erro ao tentar procurar campo de busca, Detalhes: {e}")
+            
+        time.sleep(2)
+
+        search_btn = WebDriverWait(browser, 20).until(
+            EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Pesquisar')]"))
+        )
+        
+        try:
+            search_btn.click()
+        except:
+            actions.move_to_element(search_btn).click().perform()
+        print("Botao Pesquisar")
+        
+        time.sleep(6)
+
+        result_num = WebDriverWait(browser, 20).until(
+            EC.presence_of_element_located((By.XPATH, "//*[@data-html-qtdregistro]"))
+        )
+
+        print(f"Resultado da pesquisa {result_num.text}")
+        time.sleep(2)
+        
+        if result_num.text == '1':
+            result_grid = WebDriverWait(browser, 20).until(
+                EC.presence_of_element_located((By.XPATH, "//*[@class='resultado pesquisa-resultado']"))
+            )
+            time.sleep(2)
+            # Pegar tamanho da tabela e ver se da pra pegar o ultimo elemento com base no tamanho da tabela pelo xpath
+        
+            # datas_faturas_ativas = result_grid.find_elements(By.XPATH, "//*[contains(text(), '/')]")
+            # lista_datas = []
+            # for i in datas_faturas_ativas:
+            #     valor = i.text
+            #     if valor != '':
+            #         lista_datas.append(valor)
+            # lista_datas = lista_datas[1:]
+        
+            product = browser.find_elements(By.XPATH, "//*[contains(text(), 'MOVEL') or contains(text(), 'FIXO')]")
+            nome_produto = product[0].text
+            resultado = ['09/2024', '1 via', 'info posse']
+            
+            # nome_produto = "MOVEL"
+            nome = "EMPRESA TESTE"
+        elif result_num.text == "0":
+            resultado = ['VAZIO', 'VAZIO', 'VAZIO']
+            
+    else:
+        time.sleep(2)
+        try:
+            cnpj_search_input = WebDriverWait(browser, 20).until(
+                EC.presence_of_element_located((By.XPATH, "//*[@id='cnpj-raiz']"))
+            )
+            time.sleep(2)
+            cnpj_search_input.clear()
+            time.sleep(2)
+            cnpj_search_input.send_keys(documento)
+            print("CNPJ Digitado")
+        except Exception as e:
+            print(f"Erro ao tentar procurar campo de busca, Detalhes: {e}")
+            
+        time.sleep(2)
+
+        search_btn = WebDriverWait(browser, 20).until(
+            EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Pesquisar')]"))
+        )
+        
+        try:
+            search_btn.click()
+        except:
+            actions.move_to_element(search_btn).click().perform()
+        print("Botao Pesquisar")
+        
+        time.sleep(6)
+
+        result_num = WebDriverWait(browser, 20).until(
+            EC.presence_of_element_located((By.XPATH, "//*[@data-html-qtdregistro]"))
+        )
+
+        print(f"Resultado da pesquisa {result_num.text}")
+        time.sleep(2)
+        
+        if result_num.text == '1':
+            result_grid = WebDriverWait(browser, 20).until(
+                EC.presence_of_element_located((By.XPATH, "//*[@class='resultado pesquisa-resultado']"))
+            )
+            time.sleep(2)
+            # Pegar tamanho da tabela e ver se da pra pegar o ultimo elemento com base no tamanho da tabela pelo xpath
+        
+            # datas_faturas_ativas = result_grid.find_elements(By.XPATH, "//*[contains(text(), '/')]")
+            # lista_datas = []
+            # for i in datas_faturas_ativas:
+            #     valor = i.text
+            #     if valor != '':
+            #         lista_datas.append(valor)
+            # lista_datas = lista_datas[1:]
+        
+            product = browser.find_elements(By.XPATH, "//*[contains(text(), 'MOVEL') or contains(text(), 'FIXO')]")
+            nome_produto = product[0].text
+            resultado = ['09/2024', '1 via', 'info posse']
+            
+            # nome_produto = "MOVEL"
+            nome = "EMPRESA TESTE"
+        elif result_num.text == "0":
+            resultado = ['VAZIO', 'VAZIO', 'VAZIO']
 #     js_code = """
 # let valores = Array.from(new Set(
 #     Array.from(document.querySelectorAll("span"))
@@ -536,7 +614,6 @@ def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento:
 #     }
 #     resultado_final = process_fatura_data(fatura_data)
 
-    resultado = ['09/2024', '1 via', 'info posse']
 
     return nome_produto, nome, cnpj, resultado
 
@@ -546,25 +623,33 @@ def search_econta_doc(browser: webdriver.Chrome, actions: ActionChains, logging)
 
     try:
         time.sleep(6)
+        iframe = browser.find_elements(By.TAG_NAME, 'iframe')
+        size = len(iframe)
+        print(f"TOTAL DE IFRAMES {size}")
         try:
             consult_iframe = WebDriverWait(browser, 20).until(
                 EC.presence_of_element_located((By.ID, "PegaGadget0Ifr"))
             )
             time.sleep(2)
             browser.switch_to.frame(consult_iframe)
-        except:
-            browser.switch_to.frame("PegaGadget0Ifr (!TABTHREAD0)")
+        except Exception as e:
+            logging.error(f"Erro na troca para o iframe PegaGadget0Ifr, Detalhes: {e}")
+            browser.switch_to.frame("PegaGadget0Ifr")
 
         time.sleep(6)
         
         try:
-            econtas_iframe = WebDriverWait(browser, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//iframe"))
+            econtas_iframe = WebDriverWait(browser, 30).until(
+                EC.presence_of_element_located((By.XPATH, "//iframe[@name='EContaIFrame']"))
             )
             time.sleep(2)
             browser.switch_to.frame(econtas_iframe)
-        except:
-            browser.switch_to.frame("EContaIFrame (index)")
+        except Exception as e:
+            logging.error(f"Erro na troca para o iframe EContaIFrame, Detalhes: {e}")
+            econtas_iframe_att = WebDriverWait(browser, 30).until(
+                EC.presence_of_element_located((By.XPATH, "//iframe"))
+            )
+            browser.switch_to.frame(econtas_iframe_att)
 
         arquivo_input = os.path.join(path_entrada, "cnpj_buscar.csv")
         arquivo_output = os.path.join(path_saida, "relatorio.csv")
@@ -574,25 +659,28 @@ def search_econta_doc(browser: webdriver.Chrome, actions: ActionChains, logging)
         dados_extraidos = []
         print("Arquivo de entrada lido e dados extraidos")
         for index, row in df.iterrows():
-            if index != 0:
-                print("----------------------------------------------------------------------------------------")
+            print("----------------------------------------------------------------------------------------")
             doc = row['CNPJ']
             print(doc)
             try:
-                nome_produto, nome, cnpj, resultado = get_posse_info(browser, actions)
-                if nome_produto == '' and nome == '' and len(resultado) == 0:
+                nome_produto, nome, cnpj, resultado = get_posse_info(browser, actions, doc, index)
+                print(resultado)
+                # if nome_produto == '' and nome == '' and len(resultado) == 0:
+                if nome_produto == '':
                     dados_extraidos.append(('ERRO', 'ERRO', 'ERRO', 'ERRO', 'ERRO', 'ERRO'))
                 else:
                     dados_extraidos.append((nome_produto, nome, cnpj, resultado[0], resultado[1], resultado[2]))
                 print(nome_produto, nome, cnpj, resultado)
-            except:
-                print(f"ERRO: Falha buscar posse para doc {doc}")
+            except Exception as e:
+                print(f"ERRO: Falha buscar posse para doc {doc}, detalhes: {e}")
     
-        if ('', '', '') in dados_extraidos:
-            dados_extraidos.remove(('', '', ''))
-
+        if ('', '', '', '', '','') in dados_extraidos:
+            dados_extraidos.remove(('', '', '', '', '',''))
+        print("Dados vazios removidos")
         df[['NOME_PRODUTO', 'NOME', 'DOC', 'DATA_VENCIMENTO', 'VIA', 'INFO_POSSE']] = pd.DataFrame(dados_extraidos, index = df.index)
+        print("Dataframe criado")
         df = df[['DOC', 'NOME', 'NOME_PRODUTO', 'DATA_VENCIMENTO', 'VIA', 'INFO_POSSE']]
+        print("Dataframe filtrado")
         try:
             df_error = df[df['INFO_POSSE'] == 'ERRO']
             exportar_controle_qualidade(df_error, arquivo_error_out)
@@ -610,9 +698,12 @@ def search_econta_doc(browser: webdriver.Chrome, actions: ActionChains, logging)
             logging.info(f"Total de documentos buscados {total_buscados}")
             logging.info(f"Total de documentos validados {total_validados}")
             logging.info(f"Total de documentos não validados {total_nao_validados}")
+            return "Sucesso na busca dos documentos"
+
             
     except Exception as e:
         print(f"Falha ao obter informações das faturas, detalhes: {str(e)}")
+        return "Falha na busca dos documentos"
 
    
 def iniciar_atendimento(browser: webdriver.Chrome, documento: str, logging) :
