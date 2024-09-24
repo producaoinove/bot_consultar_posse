@@ -441,20 +441,62 @@ def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento:
         
         time.sleep(6)
 
-        result_num = WebDriverWait(browser, 20).until(
-            EC.presence_of_element_located((By.XPATH, "//*[@data-html-qtdregistro]"))
-        )
+        try:
+            result_num = WebDriverWait(browser, 20).until(
+                EC.presence_of_element_located((By.XPATH, "//*[@data-html-qtdregistro]"))
+            )
 
-        print(f"Resultado da pesquisa {result_num.text}")
-        time.sleep(2)
+            print(f"Resultado da pesquisa {result_num.text}")
+            time.sleep(2)
+        except:
+            time.sleep(6)
+            
+            result_num = WebDriverWait(browser, 20).until(
+                EC.presence_of_element_located((By.XPATH, "//*[@data-html-qtdregistro]"))
+            )
+
+            print(f"Resultado da pesquisa {result_num.text}")
+            time.sleep(2)
         
         if result_num.text == '1':
-            result_grid = WebDriverWait(browser, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//*[@class='resultado pesquisa-resultado']"))
-            )
+            table  = browser.find_element(By.XPATH, "//*[@class='table-responsive']")
+            table_head = table.find_element(By.TAG_NAME, "thead")
+            # product = table_head.find_elements(By.XPATH, "//*[contains(text(), 'MOVEL') or contains(text(), 'FIXO')]")
+            # nome_produto = product[0].text
+            nome_produto = 'TESTE'
+            head_infos = table_head.find_elements(By.TAG_NAME, "tr")
+            for infos in head_infos:
+                client_infos_td = infos.find_elements(By.TAG_NAME, "td")
+                try:
+                    client_info = client_infos_td[1]
+                    print(f"INFO: {client_info.text}")
+                except Exception as e:
+                    print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
+            
+            result_body = browser.find_elements(By.XPATH, "//tbody[@class='listagem lista-faturas']")
+            try:
+                result_body = result_body[1]
+            except:
+                result_body = result_body[0]
             time.sleep(2)
+            
             # Pegar tamanho da tabela e ver se da pra pegar o ultimo elemento com base no tamanho da tabela pelo xpath
-        
+            table_rows = result_body.find_elements(By.TAG_NAME, "tr")
+            table_len = len(table_rows)
+            print(f"TAMANHO DA TABELA {table_len}")
+            resultado_teste = table_rows[table_len - 1]
+            print(f"RESULTADO TESTE {resultado_teste.text}")
+            table_data = resultado_teste.find_elements(By.TAG_NAME, "td")
+            
+            fatura_td = table_data[0]
+            fatura = fatura_td.find_element(By.TAG_NAME, 'td')
+            
+            fatura = fatura.text
+            tipo_empresa = table_data[2].text
+            valor = table_data[4].text
+            
+            resultado_teste_td = [fatura, tipo_empresa, valor]
+            print(f"RESULTADO FINAL {resultado_teste_td}")
             # datas_faturas_ativas = result_grid.find_elements(By.XPATH, "//*[contains(text(), '/')]")
             # lista_datas = []
             # for i in datas_faturas_ativas:
@@ -463,15 +505,18 @@ def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento:
             #         lista_datas.append(valor)
             # lista_datas = lista_datas[1:]
         
-            product = browser.find_elements(By.XPATH, "//*[contains(text(), 'MOVEL') or contains(text(), 'FIXO')]")
-            nome_produto = product[0].text
             resultado = ['09/2024', '1 via', 'info posse']
             
             # nome_produto = "MOVEL"
             nome = "EMPRESA TESTE"
         elif result_num.text == "0":
             resultado = ['VAZIO', 'VAZIO', 'VAZIO']
-            
+            nome = "EMPRESA TESTE"
+            nome_produto = "VAZIO"
+        else:
+            resultado = ['TESTE', 'TESTE', 'TESTE']
+            nome = "EMPRESA TESTE"
+            nome_produto = "TESTE"
     else:
         time.sleep(2)
         try:
@@ -499,21 +544,68 @@ def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento:
         print("Botao Pesquisar")
         
         time.sleep(6)
+        try:
+            result_num = WebDriverWait(browser, 20).until(
+                EC.presence_of_element_located((By.XPATH, "//*[@data-html-qtdregistro]"))
+            )
 
-        result_num = WebDriverWait(browser, 20).until(
-            EC.presence_of_element_located((By.XPATH, "//*[@data-html-qtdregistro]"))
-        )
+            print(f"Resultado da pesquisa {result_num.text}")
+            time.sleep(2)
+        except:
+            time.sleep(6)
+            
+            result_num = WebDriverWait(browser, 20).until(
+                EC.presence_of_element_located((By.XPATH, "//*[@data-html-qtdregistro]"))
+            )
 
-        print(f"Resultado da pesquisa {result_num.text}")
-        time.sleep(2)
+            print(f"Resultado da pesquisa {result_num.text}")
+            time.sleep(2)
         
         if result_num.text == '1':
-            result_grid = WebDriverWait(browser, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//*[@class='resultado pesquisa-resultado']"))
-            )
+            table  = browser.find_element(By.XPATH, "//*[@class='table-responsive']")
+            table_head = table.find_element(By.TAG_NAME, "thead")
+            # product = table_head.find_elements(By.XPATH, "//*[contains(text(), 'MOVEL') or contains(text(), 'FIXO')]")
+            # nome_produto = product[0].text
+            nome_produto = "TESTE"
+            head_infos = table_head.find_elements(By.TAG_NAME, "tr")
+            lista_coleta_head = []
+            for infos in head_infos:
+                client_infos_td = infos.find_elements(By.TAG_NAME, "td")
+                try:
+                    client_info = client_infos_td[1]
+                    lista_coleta_head.append(client_info.text)
+                    print(f"INFO: {client_info.text}")
+                except Exception as e:
+                    print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
+           
+            nome_produto = lista_coleta_head[0]
+            nome = lista_coleta_head[1]
+            
+            result_body = browser.find_elements(By.XPATH, "//tbody[@class='listagem lista-faturas']")
+            try:
+                result_body = result_body[1]
+            except:
+                result_body = result_body[0]
+                
             time.sleep(2)
+            
             # Pegar tamanho da tabela e ver se da pra pegar o ultimo elemento com base no tamanho da tabela pelo xpath
-        
+            table_rows = result_body.find_elements(By.TAG_NAME, "tr")
+            table_len = len(table_rows)
+            print(f"TAMANHO DA TABELA {table_len}")
+            resultado_teste = table_rows[table_len - 1]
+            print(f"RESULTADO TESTE {resultado_teste.text}") # retornou so o primeiro elemento da row, apos de u except
+            table_data = resultado_teste.find_elements(By.TAG_NAME, "td")
+            
+            fatura_td = table_data[0]
+            fatura = fatura_td.find_element(By.TAG_NAME, 'td')
+            
+            fatura = fatura.text
+            tipo_empresa = table_data[2].text
+            valor = table_data[4].text
+            
+            resultado_teste_td = [fatura, tipo_empresa, valor]
+            print(f"RESULTADO FINAL {resultado_teste_td}")
             # datas_faturas_ativas = result_grid.find_elements(By.XPATH, "//*[contains(text(), '/')]")
             # lista_datas = []
             # for i in datas_faturas_ativas:
@@ -522,98 +614,18 @@ def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento:
             #         lista_datas.append(valor)
             # lista_datas = lista_datas[1:]
         
-            product = browser.find_elements(By.XPATH, "//*[contains(text(), 'MOVEL') or contains(text(), 'FIXO')]")
-            nome_produto = product[0].text
             resultado = ['09/2024', '1 via', 'info posse']
             
             # nome_produto = "MOVEL"
             nome = "EMPRESA TESTE"
         elif result_num.text == "0":
             resultado = ['VAZIO', 'VAZIO', 'VAZIO']
-#     js_code = """
-# let valores = Array.from(new Set(
-#     Array.from(document.querySelectorAll("span"))
-#     .filter(span => span.textContent.includes("$"))
-#     .map(span => span.textContent)
-# ));
-
-# let datas = Array.from(new Set(
-#     Array.from(document.querySelectorAll("span"))
-#     .filter(span => (span.textContent.match(/\//g) || []).length === 2)
-#     .map(span => span.textContent)
-# )).slice(2);
-
-# let status = Array.from(document.querySelectorAll("div"))
-#     .filter(div => div.textContent.toLowerCase().includes("pago") || 
-#                     div.textContent.toLowerCase().includes("não pago") || 
-#                     div.textContent.toLowerCase().includes("vencido"))
-#     .slice(0, valores.length) 
-#     .map(div => {
-#        const text = div.textContent.toLowerCase();
-#         if (text.includes("pago") ) {
-#             return 'pago';
-#         } else {
-#             return 'em aberto';
-#         }
-#     }).slice(0, valores.length);
-
-# return { valores, datas, status };
-#         """
-
-#     res = browser.execute_script(js_code)
-    
-#     fatura_grid = WebDriverWait(browser, 20).until(
-#         EC.presence_of_element_located((By.XPATH, "//*[@data-node-id='ConsultaDeFaturas']"))
-#     )
-    
-#     datas = fatura_grid.find_elements(By.XPATH, "//*[contains(text(), '/')]")
-#     lista_datas = []
-#     for i in datas:
-#         valor = i.text
-#         if valor != '':
-#             lista_datas.append(valor)
-#     lista_datas = lista_datas
-
-#     res['datas'] = lista_datas
-
-#     valores = fatura_grid.find_elements(By.XPATH, "//*[contains(text(), '$')]")
-#     lista_valores = []
-#     for i in valores:
-#         valor = i.text
-#         if valor != '':
-#             lista_valores.append(valor)
-#     res['valores'] = lista_valores
-
-#     status = fatura_grid.find_elements(By.XPATH, "//*[contains(text(), 'Não Pago') or contains(text(), 'Pago') or contains(text(), 'Vencido')]")
-#     lista_status = []
-#     for i in status:
-#         valor = i.text
-#         if valor == 'Não Pago':
-#             valor = 'em aberto'
-#             lista_status.append(valor)
-#         if valor == 'Pago':
-#             valor = 'pago'
-#             lista_status.append(valor)
-#         if valor == 'Vencido':
-#             valor = 'em aberto'
-#             lista_status.append(valor)
-#     res['status'] = lista_status
-#     tamanho_status = len(lista_status)
-    
-#     # for index, status in enumerate(lista_status):
-#     #     if tamanho_status >= 2:
-#     #         prox_status = index + 1
-#     #         status_anterior = index - 1
-#     #         if status == 'pago' and index == 0:
-#     #             lista_datas.pop(prox_status)
-        
-#     fatura_data = {
-#         'datas': lista_datas,
-#         'valores': lista_valores,
-#         'status': lista_status
-#     }
-#     resultado_final = process_fatura_data(fatura_data)
-
+            nome = "EMPRESA TESTE"
+            nome_produto = "VAZIO"
+        else:
+            resultado = ['TESTE', 'TESTE', 'TESTE']
+            nome = "EMPRESA TESTE"
+            nome_produto = "TESTE"
 
     return nome_produto, nome, cnpj, resultado
 
@@ -664,18 +676,23 @@ def search_econta_doc(browser: webdriver.Chrome, actions: ActionChains, logging)
             print(doc)
             try:
                 nome_produto, nome, cnpj, resultado = get_posse_info(browser, actions, doc, index)
-                print(resultado)
+                print(f"RESULTADO VALUE: {resultado}")
+                dados_extraidos.append((nome_produto, nome, cnpj, resultado[0], resultado[1], resultado[2]))
                 # if nome_produto == '' and nome == '' and len(resultado) == 0:
-                if nome_produto == '':
-                    dados_extraidos.append(('ERRO', 'ERRO', 'ERRO', 'ERRO', 'ERRO', 'ERRO'))
-                else:
-                    dados_extraidos.append((nome_produto, nome, cnpj, resultado[0], resultado[1], resultado[2]))
+                # if nome_produto == '':
+                #     dados_extraidos.append(('ERRO', 'ERRO', 'ERRO', 'ERRO', 'ERRO', 'ERRO'))
+                # else:
+                #     dados_extraidos.append((nome_produto, nome, cnpj, resultado[0], resultado[1], resultado[2]))
                 print(nome_produto, nome, cnpj, resultado)
+                print(f"DADOS EXTRAIDOS: {nome_produto}, {nome}, {cnpj}, {resultado}")
+                logging.info(f"DADOS EXTRAIDOS: {nome_produto}, {nome}, {cnpj}, {resultado}")
             except Exception as e:
                 print(f"ERRO: Falha buscar posse para doc {doc}, detalhes: {e}")
+                logging.error(f"ERRO: Falha buscar posse para doc {doc}, detalhes: {e}")
     
         if ('', '', '', '', '','') in dados_extraidos:
             dados_extraidos.remove(('', '', '', '', '',''))
+
         print("Dados vazios removidos")
         df[['NOME_PRODUTO', 'NOME', 'DOC', 'DATA_VENCIMENTO', 'VIA', 'INFO_POSSE']] = pd.DataFrame(dados_extraidos, index = df.index)
         print("Dataframe criado")
@@ -699,8 +716,7 @@ def search_econta_doc(browser: webdriver.Chrome, actions: ActionChains, logging)
             logging.info(f"Total de documentos validados {total_validados}")
             logging.info(f"Total de documentos não validados {total_nao_validados}")
             return "Sucesso na busca dos documentos"
-
-            
+    
     except Exception as e:
         print(f"Falha ao obter informações das faturas, detalhes: {str(e)}")
         return "Falha na busca dos documentos"
