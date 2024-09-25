@@ -463,16 +463,20 @@ def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento:
             table_head = table.find_element(By.TAG_NAME, "thead")
             # product = table_head.find_elements(By.XPATH, "//*[contains(text(), 'MOVEL') or contains(text(), 'FIXO')]")
             # nome_produto = product[0].text
-            nome_produto = 'TESTE'
+            # nome_produto = 'TESTE'
             head_infos = table_head.find_elements(By.TAG_NAME, "tr")
+            lista_head = []
             for infos in head_infos:
                 client_infos_td = infos.find_elements(By.TAG_NAME, "td")
                 try:
                     client_info = client_infos_td[1]
                     print(f"INFO: {client_info.text}")
+                    lista_head.append(client_info.text)
+                    
                 except Exception as e:
                     print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
-            
+            nome_produto = lista_head[0]
+            nome = lista_head[1]
             result_body = browser.find_elements(By.XPATH, "//tbody[@class='listagem lista-faturas']")
             try:
                 result_body = result_body[1]
@@ -484,19 +488,22 @@ def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento:
             table_rows = result_body.find_elements(By.TAG_NAME, "tr")
             table_len = len(table_rows)
             print(f"TAMANHO DA TABELA {table_len}")
-            resultado_teste = table_rows[table_len - 1]
-            print(f"RESULTADO TESTE {resultado_teste.text}")
-            table_data = resultado_teste.find_elements(By.TAG_NAME, "td")
+            for infos in table_rows:
+                client_infos_td = infos.find_elements(By.TAG_NAME, "td")
+                client_info_len = len(client_infos_td)
+                print(f"NUMERO DE RESULTADOS OBITIDOS NA BUSCA {client_info_len}")
+                try:
+                    fatura = client_infos_td[0].text
+                    tipo_empresa = client_infos_td[4].text
+                    valor = client_infos_td[6].text
+                    print(f"RESULTADO TESTE FATURA {fatura}")
+                    print(f"RESULTADO TESTE EMPRESA {tipo_empresa}")
+                    print(f"RESULTADO TESTE VALOR {valor}")
+                except Exception as e:
+                    print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
             
-            fatura_td = table_data[0]
-            fatura = fatura_td.find_element(By.TAG_NAME, 'td')
-            
-            fatura = fatura.text
-            tipo_empresa = table_data[2].text
-            valor = table_data[4].text
-            
-            resultado_teste_td = [fatura, tipo_empresa, valor]
-            print(f"RESULTADO FINAL {resultado_teste_td}")
+            resultado = [fatura, tipo_empresa, valor]
+            print(f"RESULTADO FINAL {resultado}")
             # datas_faturas_ativas = result_grid.find_elements(By.XPATH, "//*[contains(text(), '/')]")
             # lista_datas = []
             # for i in datas_faturas_ativas:
@@ -505,18 +512,54 @@ def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento:
             #         lista_datas.append(valor)
             # lista_datas = lista_datas[1:]
         
-            resultado = ['09/2024', '1 via', 'info posse']
+            # resultado = ['09/2024', '1 via', 'info posse']
             
             # nome_produto = "MOVEL"
-            nome = "EMPRESA TESTE"
+            # nome = "EMPRESA TESTE"
         elif result_num.text == "0":
             resultado = ['VAZIO', 'VAZIO', 'VAZIO']
             nome = "EMPRESA TESTE"
             nome_produto = "VAZIO"
         else:
-            resultado = ['TESTE', 'TESTE', 'TESTE']
-            nome = "EMPRESA TESTE"
-            nome_produto = "TESTE"
+            table  = browser.find_element(By.XPATH, "//*[@class='table-responsive']")
+            table_head = table.find_elements(By.TAG_NAME, "thead")
+            lista_coleta_head = []
+            for head in table_head:
+                head_infos = head.find_elements(By.TAG_NAME, "tr")
+                for infos in head_infos:
+                    client_infos_td = infos.find_elements(By.TAG_NAME, "td")
+                    try:
+                        client_info = client_infos_td[1]
+                        lista_coleta_head.append(client_info.text)
+                        print(f"INFO: {client_info.text}")
+                    except Exception as e:
+                        print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
+            nome_produto = lista_coleta_head[0]
+            nome = lista_coleta_head[1]
+            
+            result_body = browser.find_elements(By.XPATH, "//tbody[@class='listagem lista-faturas']")
+            for body in result_body:
+                time.sleep(2)
+                
+                table_rows = body.find_elements(By.TAG_NAME, "tr")
+                table_len = len(table_rows)
+                print(f"TAMANHO DA TABELA {table_len}")
+                
+                for infos in table_rows:
+                    client_infos_td = infos.find_elements(By.TAG_NAME, "td")
+                    client_info_len = len(client_infos_td)
+                    print(f"NUMERO DE RESULTADOS OBITIDOS NA BUSCA {client_info_len}")
+                    try:
+                        fatura = client_infos_td[0].text
+                        tipo_empresa = client_infos_td[4].text
+                        valor = client_infos_td[6].text
+                        for i in client_infos_td:
+                            print(f"RESULTADO TESTE FATURA {i.text}")
+                    except Exception as e:
+                        print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
+            
+            resultado = [fatura, tipo_empresa, valor]
+            print(f"RESULTADO FINAL {resultado}")
     else:
         time.sleep(2)
         try:
@@ -566,7 +609,7 @@ def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento:
             table_head = table.find_element(By.TAG_NAME, "thead")
             # product = table_head.find_elements(By.XPATH, "//*[contains(text(), 'MOVEL') or contains(text(), 'FIXO')]")
             # nome_produto = product[0].text
-            nome_produto = "TESTE"
+            # nome_produto = "TESTE"
             head_infos = table_head.find_elements(By.TAG_NAME, "tr")
             lista_coleta_head = []
             for infos in head_infos:
@@ -577,7 +620,6 @@ def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento:
                     print(f"INFO: {client_info.text}")
                 except Exception as e:
                     print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
-           
             nome_produto = lista_coleta_head[0]
             nome = lista_coleta_head[1]
             
@@ -593,39 +635,69 @@ def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento:
             table_rows = result_body.find_elements(By.TAG_NAME, "tr")
             table_len = len(table_rows)
             print(f"TAMANHO DA TABELA {table_len}")
-            resultado_teste = table_rows[table_len - 1]
-            print(f"RESULTADO TESTE {resultado_teste.text}") # retornou so o primeiro elemento da row, apos de u except
-            table_data = resultado_teste.find_elements(By.TAG_NAME, "td")
             
-            fatura_td = table_data[0]
-            fatura = fatura_td.find_element(By.TAG_NAME, 'td')
+            for infos in table_rows:
+                client_infos_td = infos.find_elements(By.TAG_NAME, "td")
+                client_info_len = len(client_infos_td)
+                print(f"NUMERO DE RESULTADOS OBITIDOS NA BUSCA {client_info_len}")
+                try:
+                    fatura = client_infos_td[0].text
+                    tipo_empresa = client_infos_td[4].text
+                    valor = client_infos_td[6].text
+                    for i in client_infos_td:
+                        print(f"RESULTADO TESTE FATURA {i.text}")
+                except Exception as e:
+                    print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
             
-            fatura = fatura.text
-            tipo_empresa = table_data[2].text
-            valor = table_data[4].text
-            
-            resultado_teste_td = [fatura, tipo_empresa, valor]
-            print(f"RESULTADO FINAL {resultado_teste_td}")
-            # datas_faturas_ativas = result_grid.find_elements(By.XPATH, "//*[contains(text(), '/')]")
-            # lista_datas = []
-            # for i in datas_faturas_ativas:
-            #     valor = i.text
-            #     if valor != '':
-            #         lista_datas.append(valor)
-            # lista_datas = lista_datas[1:]
-        
-            resultado = ['09/2024', '1 via', 'info posse']
-            
-            # nome_produto = "MOVEL"
-            nome = "EMPRESA TESTE"
+            resultado = [fatura, tipo_empresa, valor]
+            print(f"RESULTADO FINAL {resultado}")
         elif result_num.text == "0":
             resultado = ['VAZIO', 'VAZIO', 'VAZIO']
             nome = "EMPRESA TESTE"
             nome_produto = "VAZIO"
         else:
-            resultado = ['TESTE', 'TESTE', 'TESTE']
-            nome = "EMPRESA TESTE"
-            nome_produto = "TESTE"
+            table  = browser.find_element(By.XPATH, "//*[@class='table-responsive']")
+            table_head = table.find_elements(By.TAG_NAME, "thead")
+            lista_coleta_head = []
+            for head in table_head:
+                head_infos = head.find_elements(By.TAG_NAME, "tr")
+                for infos in head_infos:
+                    client_infos_td = infos.find_elements(By.TAG_NAME, "td")
+                    try:
+                        client_info = client_infos_td[1]
+                        lista_coleta_head.append(client_info.text)
+                        print(f"INFO: {client_info.text}")
+                    except Exception as e:
+                        print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
+            nome_produto = lista_coleta_head[0]
+            nome = lista_coleta_head[1]
+            
+            result_body = browser.find_elements(By.XPATH, "//tbody[@class='listagem lista-faturas']")
+            for body in result_body:
+                time.sleep(2)
+                
+                table_rows = body.find_elements(By.TAG_NAME, "tr")
+                table_len = len(table_rows)
+                print(f"TAMANHO DA TABELA {table_len}")
+                
+                for infos in table_rows:
+                    client_infos_td = infos.find_elements(By.TAG_NAME, "td")
+                    client_info_len = len(client_infos_td)
+                    print(f"NUMERO DE RESULTADOS OBITIDOS NA BUSCA {client_info_len}")
+                    try:
+                        fatura = client_infos_td[0].text
+                        tipo_empresa = client_infos_td[4].text
+                        valor = client_infos_td[6].text
+                        for i in client_infos_td:
+                            print(f"RESULTADO TESTE FATURA {i.text}")
+                    except Exception as e:
+                        print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
+            
+            resultado = [fatura, tipo_empresa, valor]
+            print(f"RESULTADO FINAL {resultado}")
+            # resultado = ['TESTE', 'TESTE', 'TESTE']
+            # nome = "EMPRESA TESTE"
+            # nome_produto = "TESTE"
 
     return nome_produto, nome, cnpj, resultado
 
@@ -694,9 +766,9 @@ def search_econta_doc(browser: webdriver.Chrome, actions: ActionChains, logging)
             dados_extraidos.remove(('', '', '', '', '',''))
 
         print("Dados vazios removidos")
-        df[['NOME_PRODUTO', 'NOME', 'DOC', 'DATA_VENCIMENTO', 'VIA', 'INFO_POSSE']] = pd.DataFrame(dados_extraidos, index = df.index)
+        df[['NOME_PRODUTO', 'NOME', 'DOC', 'DATA_VENCIMENTO', 'INFO_POSSE', 'VALOR']] = pd.DataFrame(dados_extraidos, index = df.index)
         print("Dataframe criado")
-        df = df[['DOC', 'NOME', 'NOME_PRODUTO', 'DATA_VENCIMENTO', 'VIA', 'INFO_POSSE']]
+        df = df[['DOC', 'NOME', 'NOME_PRODUTO', 'DATA_VENCIMENTO', 'INFO_POSSE', 'VALOR']]
         print("Dataframe filtrado")
         try:
             df_error = df[df['INFO_POSSE'] == 'ERRO']
@@ -709,8 +781,8 @@ def search_econta_doc(browser: webdriver.Chrome, actions: ActionChains, logging)
         
         if res == "SUCESSO":
             total_buscados = len(df)
-            total_validados = df['CNPJ'].notna().sum()
-            total_nao_validados = df['CNPJ'].isna().sum()
+            total_validados = df['DOC'].notna().sum()
+            total_nao_validados = df['DOC'].isna().sum()
             logging.info(f"Total de documentos iniciais {total_inicial}")
             logging.info(f"Total de documentos buscados {total_buscados}")
             logging.info(f"Total de documentos validados {total_validados}")
