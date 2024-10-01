@@ -9,6 +9,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
 import time
 import os
+import datetime
 
 
 def process_fatura_data(fatura_data: dict, mes_safra: str):
@@ -390,228 +391,113 @@ def ir_novoatendimento(browser: webdriver.Chrome):
         print(f"Falha ao clicar no botão 'NOVO ATENDIMENTO', detalhes: {str(e)}")
     return browser
 
-def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento: str, index):
+def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento: str):
     time.sleep(2)
     cnpj = str(documento)
-    if index == 0:
-        pesquisa_menu_btn = WebDriverWait(browser, 20).until(
-            EC.presence_of_element_located((By.XPATH, "//a[@data-ascii='Pesquisa']"))
+    
+    time.sleep(2)
+    try:
+        cnpj_search_input = WebDriverWait(browser, 20).until(
+            EC.presence_of_element_located((By.XPATH, "//*[@id='cnpj-raiz']"))
         )
-        try:
-            pesquisa_menu_btn.click()
-        except:
-            actions.move_to_element(pesquisa_menu_btn).click().perform()
-        print("Botao de pesquisa")
-        
         time.sleep(2)
+        cnpj_search_input.clear()
+        time.sleep(2)
+        cnpj_search_input.send_keys(documento)
+        print("CNPJ Digitado")
+    except Exception as e:
+        print(f"Erro ao tentar procurar campo de busca, Detalhes: {e}")
+        
+    time.sleep(2)
 
-        cnpj_search_btn = WebDriverWait(browser, 20).until(
-            EC.presence_of_element_located((By.XPATH, "//a[@data-ascii='CNPJ/Raiz']"))
+    search_btn = WebDriverWait(browser, 20).until(
+        EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Pesquisar')]"))
+    )
+    
+    try:
+        search_btn.click()
+    except:
+        actions.move_to_element(search_btn).click().perform()
+    print("Botao Pesquisar")
+    
+    time.sleep(10)
+    try:
+        result_num = WebDriverWait(browser, 20).until(
+            EC.presence_of_element_located((By.XPATH, "//*[@data-html-qtdregistro]"))
         )
-
-        try:
-            cnpj_search_btn.click()
-        except:
-            actions.move_to_element(cnpj_search_btn).click().perform()
-        print("Botao de CNPJ/Raiz")
-        
+        print(f"Resultado da pesquisa {result_num.text}")
         time.sleep(2)
-        
-        try:
-            cnpj_search_input = WebDriverWait(browser, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//*[@id='cnpj-raiz']"))
-            )
-            time.sleep(2)
-            cnpj_search_input.send_keys(documento)
-            print("CNPJ Digitado")
-        except Exception as e:
-            print(f"Erro ao tentar procurar campo de busca, Detalhes: {e}")
-            
-        time.sleep(2)
-
-        search_btn = WebDriverWait(browser, 20).until(
-            EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Pesquisar')]"))
-        )
-        
-        try:
-            search_btn.click()
-        except:
-            actions.move_to_element(search_btn).click().perform()
-        print("Botao Pesquisar")
-        
+    except:
         time.sleep(6)
-
-        try:
-            result_num = WebDriverWait(browser, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//*[@data-html-qtdregistro]"))
-            )
-
-            print(f"Resultado da pesquisa {result_num.text}")
-            time.sleep(2)
-        except:
-            time.sleep(6)
-            
-            result_num = WebDriverWait(browser, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//*[@data-html-qtdregistro]"))
-            )
-
-            print(f"Resultado da pesquisa {result_num.text}")
-            time.sleep(2)
         
-        if result_num.text == '1':
-            table  = browser.find_element(By.XPATH, "//*[@class='table-responsive']")
-            table_head = table.find_element(By.TAG_NAME, "thead")
-            # product = table_head.find_elements(By.XPATH, "//*[contains(text(), 'MOVEL') or contains(text(), 'FIXO')]")
-            # nome_produto = product[0].text
-            # nome_produto = 'TESTE'
-            head_infos = table_head.find_elements(By.TAG_NAME, "tr")
-            lista_head = []
-            for infos in head_infos:
-                client_infos_td = infos.find_elements(By.TAG_NAME, "td")
-                try:
-                    client_info = client_infos_td[1]
-                    print(f"INFO: {client_info.text}")
-                    lista_head.append(client_info.text)
-                    
-                except Exception as e:
-                    print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
-            nome_produto = lista_head[0]
-            nome = lista_head[1]
-            result_body = browser.find_elements(By.XPATH, "//tbody[@class='listagem lista-faturas']")
+        result_num = WebDriverWait(browser, 20).until(
+            EC.presence_of_element_located((By.XPATH, "//*[@data-html-qtdregistro]"))
+        )
+
+        print(f"Resultado da pesquisa {result_num.text}")
+        time.sleep(2)
+    
+    if result_num.text == '1':
+        table  = browser.find_element(By.XPATH, "//*[@class='table-responsive']")
+        table_head = table.find_element(By.TAG_NAME, "thead")
+        head_infos = table_head.find_elements(By.TAG_NAME, "tr")
+        lista_coleta_head = []
+        for infos in head_infos:
+            client_infos_td = infos.find_elements(By.TAG_NAME, "td")
             try:
-                result_body = result_body[1]
-            except:
-                result_body = result_body[0]
-            time.sleep(2)
-            
-            # Pegar tamanho da tabela e ver se da pra pegar o ultimo elemento com base no tamanho da tabela pelo xpath
-            table_rows = result_body.find_elements(By.TAG_NAME, "tr")
-            table_len = len(table_rows)
-            print(f"TAMANHO DA TABELA {table_len}")
-            for infos in table_rows:
-                client_infos_td = infos.find_elements(By.TAG_NAME, "td")
-                client_info_len = len(client_infos_td)
-                print(f"NUMERO DE RESULTADOS OBITIDOS NA BUSCA {client_info_len}")
-                try:
-                    fatura = client_infos_td[0].text
-                    tipo_empresa = client_infos_td[4].text
-                    valor = client_infos_td[6].text
-                    print(f"RESULTADO TESTE FATURA {fatura}")
-                    print(f"RESULTADO TESTE EMPRESA {tipo_empresa}")
-                    print(f"RESULTADO TESTE VALOR {valor}")
-                except Exception as e:
-                    print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
-            
-            resultado = [fatura, tipo_empresa, valor]
-            print(f"RESULTADO FINAL {resultado}")
-            # datas_faturas_ativas = result_grid.find_elements(By.XPATH, "//*[contains(text(), '/')]")
-            # lista_datas = []
-            # for i in datas_faturas_ativas:
-            #     valor = i.text
-            #     if valor != '':
-            #         lista_datas.append(valor)
-            # lista_datas = lista_datas[1:]
+                client_info = client_infos_td[1]
+                lista_coleta_head.append(client_info.text)
+                print(f"INFO: {client_info.text}")
+            except Exception as e:
+                print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
+        nome_produto = lista_coleta_head[0]
+        nome = lista_coleta_head[1]
         
-            # resultado = ['09/2024', '1 via', 'info posse']
+        result_body = browser.find_elements(By.XPATH, "//tbody[@class='listagem lista-faturas']")
+        try:
+            result_body = result_body[1]
+        except:
+            result_body = result_body[0]
             
-            # nome_produto = "MOVEL"
-            # nome = "EMPRESA TESTE"
-        elif result_num.text == "0":
-            resultado = ['VAZIO', 'VAZIO', 'VAZIO']
-            nome = "EMPRESA TESTE"
-            nome_produto = "VAZIO"
-        else:
-            table  = browser.find_element(By.XPATH, "//*[@class='table-responsive']")
-            table_head = table.find_elements(By.TAG_NAME, "thead")
-            lista_coleta_head = []
-            for head in table_head:
-                head_infos = head.find_elements(By.TAG_NAME, "tr")
-                for infos in head_infos:
-                    client_infos_td = infos.find_elements(By.TAG_NAME, "td")
-                    try:
-                        client_info = client_infos_td[1]
-                        lista_coleta_head.append(client_info.text)
-                        print(f"INFO: {client_info.text}")
-                    except Exception as e:
-                        print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
-            nome_produto = lista_coleta_head[0]
-            nome = lista_coleta_head[1]
-            
-            result_body = browser.find_elements(By.XPATH, "//tbody[@class='listagem lista-faturas']")
-            for body in result_body:
-                time.sleep(2)
-                
-                table_rows = body.find_elements(By.TAG_NAME, "tr")
-                table_len = len(table_rows)
-                print(f"TAMANHO DA TABELA {table_len}")
-                
-                for infos in table_rows:
-                    client_infos_td = infos.find_elements(By.TAG_NAME, "td")
-                    client_info_len = len(client_infos_td)
-                    print(f"NUMERO DE RESULTADOS OBITIDOS NA BUSCA {client_info_len}")
-                    try:
-                        fatura = client_infos_td[0].text
-                        tipo_empresa = client_infos_td[4].text
-                        valor = client_infos_td[6].text
-                        for i in client_infos_td:
-                            print(f"RESULTADO TESTE FATURA {i.text}")
-                    except Exception as e:
-                        print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
-            
-            resultado = [fatura, tipo_empresa, valor]
-            print(f"RESULTADO FINAL {resultado}")
+        time.sleep(2)
+        
+        # Pegar tamanho da tabela e ver se da pra pegar o ultimo elemento com base no tamanho da tabela pelo xpath
+        table_rows = result_body.find_elements(By.TAG_NAME, "tr")
+        table_len = len(table_rows)
+        print(f"TAMANHO DA TABELA {table_len}")
+        
+        for infos in table_rows:
+            client_infos_td = infos.find_elements(By.TAG_NAME, "td")
+            client_info_len = len(client_infos_td)
+            print(f"NUMERO DE RESULTADOS OBITIDOS NA BUSCA {client_info_len}")
+            try:
+                fatura = client_infos_td[0].text
+                tipo_empresa = client_infos_td[4].text
+                valor = client_infos_td[6].text
+                for i in client_infos_td:
+                    print(f"RESULTADO TESTE FATURA {i.text}")
+            except Exception as e:
+                print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
+        
+        resultado = [fatura, tipo_empresa, valor]
+        print(f"RESULTADO FINAL {resultado}")
+    elif result_num.text == "0":
+        resultado = ['VAZIO', 'VAZIO', 'VAZIO']
+        nome = "EMPRESA TESTE"
+        nome_produto = "VAZIO"
     else:
-        time.sleep(2)
-        try:
-            cnpj_search_input = WebDriverWait(browser, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//*[@id='cnpj-raiz']"))
-            )
-            time.sleep(2)
-            cnpj_search_input.clear()
-            time.sleep(2)
-            cnpj_search_input.send_keys(documento)
-            print("CNPJ Digitado")
-        except Exception as e:
-            print(f"Erro ao tentar procurar campo de busca, Detalhes: {e}")
-            
-        time.sleep(2)
-
-        search_btn = WebDriverWait(browser, 20).until(
-            EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Pesquisar')]"))
-        )
+        now = datetime.datetime.now()
+        yesterday = datetime.timedelta(days=30)
+        yesterday_ref = now - yesterday
+        date_ref = yesterday_ref.strftime("%m/%Y")
+        lista_info = []
+        lista_sec_info = []
         
-        try:
-            search_btn.click()
-        except:
-            actions.move_to_element(search_btn).click().perform()
-        print("Botao Pesquisar")
-        
-        time.sleep(6)
-        try:
-            result_num = WebDriverWait(browser, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//*[@data-html-qtdregistro]"))
-            )
-
-            print(f"Resultado da pesquisa {result_num.text}")
-            time.sleep(2)
-        except:
-            time.sleep(6)
-            
-            result_num = WebDriverWait(browser, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//*[@data-html-qtdregistro]"))
-            )
-
-            print(f"Resultado da pesquisa {result_num.text}")
-            time.sleep(2)
-        
-        if result_num.text == '1':
-            table  = browser.find_element(By.XPATH, "//*[@class='table-responsive']")
-            table_head = table.find_element(By.TAG_NAME, "thead")
-            # product = table_head.find_elements(By.XPATH, "//*[contains(text(), 'MOVEL') or contains(text(), 'FIXO')]")
-            # nome_produto = product[0].text
-            # nome_produto = "TESTE"
-            head_infos = table_head.find_elements(By.TAG_NAME, "tr")
-            lista_coleta_head = []
+        table  = browser.find_element(By.XPATH, "//*[@class='table-responsive']")
+        table_head = table.find_elements(By.TAG_NAME, "thead")
+        lista_coleta_head = []
+        for head in table_head:
+            head_infos = head.find_elements(By.TAG_NAME, "tr")
             for infos in head_infos:
                 client_infos_td = infos.find_elements(By.TAG_NAME, "td")
                 try:
@@ -620,19 +506,14 @@ def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento:
                     print(f"INFO: {client_info.text}")
                 except Exception as e:
                     print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
-            nome_produto = lista_coleta_head[0]
-            nome = lista_coleta_head[1]
-            
-            result_body = browser.find_elements(By.XPATH, "//tbody[@class='listagem lista-faturas']")
-            try:
-                result_body = result_body[1]
-            except:
-                result_body = result_body[0]
-                
+        nome_produto = lista_coleta_head[0]
+        nome = lista_coleta_head[1]
+        
+        result_body = browser.find_elements(By.XPATH, "//tbody[@class='listagem lista-faturas']")
+        for body in result_body:
             time.sleep(2)
             
-            # Pegar tamanho da tabela e ver se da pra pegar o ultimo elemento com base no tamanho da tabela pelo xpath
-            table_rows = result_body.find_elements(By.TAG_NAME, "tr")
+            table_rows = body.find_elements(By.TAG_NAME, "tr")
             table_len = len(table_rows)
             print(f"TAMANHO DA TABELA {table_len}")
             
@@ -641,63 +522,37 @@ def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento:
                 client_info_len = len(client_infos_td)
                 print(f"NUMERO DE RESULTADOS OBITIDOS NA BUSCA {client_info_len}")
                 try:
-                    fatura = client_infos_td[0].text
-                    tipo_empresa = client_infos_td[4].text
-                    valor = client_infos_td[6].text
-                    for i in client_infos_td:
-                        print(f"RESULTADO TESTE FATURA {i.text}")
-                except Exception as e:
-                    print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
-            
-            resultado = [fatura, tipo_empresa, valor]
-            print(f"RESULTADO FINAL {resultado}")
-        elif result_num.text == "0":
-            resultado = ['VAZIO', 'VAZIO', 'VAZIO']
-            nome = "EMPRESA TESTE"
-            nome_produto = "VAZIO"
-        else:
-            table  = browser.find_element(By.XPATH, "//*[@class='table-responsive']")
-            table_head = table.find_elements(By.TAG_NAME, "thead")
-            lista_coleta_head = []
-            for head in table_head:
-                head_infos = head.find_elements(By.TAG_NAME, "tr")
-                for infos in head_infos:
-                    client_infos_td = infos.find_elements(By.TAG_NAME, "td")
-                    try:
-                        client_info = client_infos_td[1]
-                        lista_coleta_head.append(client_info.text)
-                        print(f"INFO: {client_info.text}")
-                    except Exception as e:
-                        print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
-            nome_produto = lista_coleta_head[0]
-            nome = lista_coleta_head[1]
-            
-            result_body = browser.find_elements(By.XPATH, "//tbody[@class='listagem lista-faturas']")
-            for body in result_body:
-                time.sleep(2)
-                
-                table_rows = body.find_elements(By.TAG_NAME, "tr")
-                table_len = len(table_rows)
-                print(f"TAMANHO DA TABELA {table_len}")
-                
-                for infos in table_rows:
-                    client_infos_td = infos.find_elements(By.TAG_NAME, "td")
-                    client_info_len = len(client_infos_td)
-                    print(f"NUMERO DE RESULTADOS OBITIDOS NA BUSCA {client_info_len}")
-                    try:
+                    if client_infos_td[0].text == date_ref:
                         fatura = client_infos_td[0].text
                         tipo_empresa = client_infos_td[4].text
                         valor = client_infos_td[6].text
-                        for i in client_infos_td:
-                            print(f"RESULTADO TESTE FATURA {i.text}")
-                    except Exception as e:
-                        print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
-            
-            resultado = [fatura, tipo_empresa, valor]
-            print(f"RESULTADO FINAL {resultado}")
-            # resultado = ['TESTE', 'TESTE', 'TESTE']
-            # nome = "EMPRESA TESTE"
-            # nome_produto = "TESTE"
+                        lista_info.append(fatura)
+                        lista_info.append(tipo_empresa)
+                        lista_info.append(valor)
+                    else:
+                        fatura = client_infos_td[0].text
+                        tipo_empresa = client_infos_td[4].text
+                        valor = client_infos_td[6].text
+                        lista_sec_info.append(fatura)
+                        lista_sec_info.append(tipo_empresa)
+                        lista_sec_info.append(valor)
+                        
+                except Exception as e:
+                    print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
+        
+        if len(lista_info) > 3:
+            lista_format = lista_info[3:]
+            resultado = [lista_format[0], lista_format[1], lista_format[2]]
+        elif len(lista_info) == 3:
+            resultado = [lista_info[0], lista_info[1], lista_info[2]]
+        elif len(lista_sec_info) > 3:
+            lista_sec_info_format = lista_sec_info[3:]
+            resultado = [lista_sec_info_format[0], lista_sec_info_format[1], lista_sec_info_format[2]]
+        elif len(lista_sec_info) == 3:
+            resultado = [lista_sec_info[0], lista_sec_info[1], lista_sec_info[2]]
+        else:
+            resultado = ['VAZIO', 'VAZIO', 'VAZIO']
+        print(f"RESULTADO FINAL {resultado}")
 
     return nome_produto, nome, cnpj, resultado
 
@@ -746,18 +601,41 @@ def search_econta_doc(browser: webdriver.Chrome, actions: ActionChains, logging)
             print("----------------------------------------------------------------------------------------")
             doc = row['CNPJ']
             print(doc)
+            if index == 0:
+                time.sleep(2)
+                
+                pesquisa_menu_btn = WebDriverWait(browser, 20).until(
+                    EC.presence_of_element_located((By.XPATH, "//a[@data-ascii='Pesquisa']"))
+                )
+                try:
+                    pesquisa_menu_btn.click()
+                except:
+                    actions.move_to_element(pesquisa_menu_btn).click().perform()
+                print("Botao de pesquisa")
+
+                time.sleep(2)
+
+                cnpj_search_btn = WebDriverWait(browser, 20).until(
+                    EC.presence_of_element_located((By.XPATH, "//a[@data-ascii='CNPJ/Raiz']"))
+                )
+
+                try:
+                    cnpj_search_btn.click()
+                except:
+                    actions.move_to_element(cnpj_search_btn).click().perform()
+                print("Botao de CNPJ/Raiz")
             try:
-                nome_produto, nome, cnpj, resultado = get_posse_info(browser, actions, doc, index)
+                nome_produto, nome, cnpj, resultado = get_posse_info(browser, actions, doc)
                 print(f"RESULTADO VALUE: {resultado}")
                 dados_extraidos.append((nome_produto, nome, cnpj, resultado[0], resultado[1], resultado[2]))
                 # if nome_produto == '' and nome == '' and len(resultado) == 0:
-                # if nome_produto == '':
-                #     dados_extraidos.append(('ERRO', 'ERRO', 'ERRO', 'ERRO', 'ERRO', 'ERRO'))
-                # else:
-                #     dados_extraidos.append((nome_produto, nome, cnpj, resultado[0], resultado[1], resultado[2]))
-                print(nome_produto, nome, cnpj, resultado)
-                print(f"DADOS EXTRAIDOS: {nome_produto}, {nome}, {cnpj}, {resultado}")
-                logging.info(f"DADOS EXTRAIDOS: {nome_produto}, {nome}, {cnpj}, {resultado}")
+                if nome_produto == '':
+                    dados_extraidos.append(('ERRO', 'ERRO', 'ERRO', 'ERRO', 'ERRO', 'ERRO'))
+                else:
+                    dados_extraidos.append((nome_produto, nome, cnpj, resultado[0], resultado[1], resultado[2]))
+                    print(f"DADOS EXTRAIDOS: {nome_produto}, {nome}, {cnpj}, {resultado}")
+                    # print(nome_produto, nome, cnpj, resultado)
+                    logging.info(f"DADOS EXTRAIDOS: {nome_produto}, {nome}, {cnpj}, {resultado}")
             except Exception as e:
                 print(f"ERRO: Falha buscar posse para doc {doc}, detalhes: {e}")
                 logging.error(f"ERRO: Falha buscar posse para doc {doc}, detalhes: {e}")
@@ -766,9 +644,9 @@ def search_econta_doc(browser: webdriver.Chrome, actions: ActionChains, logging)
             dados_extraidos.remove(('', '', '', '', '',''))
 
         print("Dados vazios removidos")
-        df[['NOME_PRODUTO', 'NOME', 'DOC', 'DATA_VENCIMENTO', 'INFO_POSSE', 'VALOR']] = pd.DataFrame(dados_extraidos, index = df.index)
+        df[['NOME_PRODUTO', 'NOME', 'DOC', 'DATA_REF', 'INFO_POSSE', 'VALOR']] = pd.DataFrame(dados_extraidos, index = df.index)
         print("Dataframe criado")
-        df = df[['DOC', 'NOME', 'NOME_PRODUTO', 'DATA_VENCIMENTO', 'INFO_POSSE', 'VALOR']]
+        df = df[['DOC', 'NOME', 'NOME_PRODUTO', 'DATA_REF', 'INFO_POSSE', 'VALOR']]
         print("Dataframe filtrado")
         try:
             df_error = df[df['INFO_POSSE'] == 'ERRO']
