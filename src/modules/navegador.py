@@ -115,10 +115,6 @@ def search_doc(browser: webdriver.Chrome, documento: str, logging, actions: Acti
     data = ""
     valor = ""
     documento = str(documento)
-    # browser.implicitly_wait(30)
-    # time.sleep(10)
-    # print("Saiu da pausa")
-
     browser.implicitly_wait(15)
 
     res = resposta_busca(browser, documento, actions, logging)
@@ -248,8 +244,7 @@ return null;
 
     if result_div:
         return (driver, 'Novo Cliente')
-    
-        
+
     return (driver, 'Nova Fibra')
 
 def resposta_busca(browser, documento, actions, logging):
@@ -280,7 +275,6 @@ if (produtoElement) {
         
         if resultado == "Produto encontrado e clicado":
             actions = ActionChains(browser)
-            # botao apresentando problema no click
             elemento_avancar = browser.find_element(By.NAME, 'MainNovoAtendimento_pyDisplayHarness_83')
             data_click_value = elemento_avancar.get_attribute('data-click')
             actions.move_to_element(elemento_avancar).click().perform()
@@ -311,19 +305,6 @@ def escolher_servico(browser : webdriver.Chrome):
     try:
 
         try:
-            # WebDriverWait(browser, 20).until(
-            #     EC.presence_of_element_located((By.XPATH, "//div[@base_ref='pyWorkPage.IntentList(2)']"))
-            # )
-            
-#             var xpath = "//*[@aria-label='Painel Central']";
-# var result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-# var produtoElement = result.singleNodeValue;
-# if (produtoElement) {
-#     produtoElement.click();
-#     console.log("Produto encontrado e clicado");
-# } else {
-#     console.log("Produto não encontrado");
-# }
             main_iframe = WebDriverWait(browser, 20).until(
                 EC.presence_of_element_located((By.ID, "PegaGadget0Ifr"))
             )
@@ -339,13 +320,6 @@ def escolher_servico(browser : webdriver.Chrome):
         time.sleep(6)
         
         try:
-            # avançar_button_selector = browser.find_element(By.XPATH, "//button[text()='INICIAR ATENDIMENTO']")
-            # avançar_button_selector = WebDriverWait(browser, 10).until(
-            #     EC.visibility_of_element_located((By.XPATH, avançar_button_selector))
-            # )
-            # actions = ActionChains(browser)
-            # click_avancar = avançar_button_selector.get_attribute('data-click')
-            # actions.move_to_element(avançar_button_selector).click().perform()
             avancar_js = '''
 var element = document.evaluate("//button[text()='INICIAR ATENDIMENTO']", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 var clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true, view: window });
@@ -395,7 +369,7 @@ def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento:
     time.sleep(2)
     cnpj = str(documento)
     
-    time.sleep(2)
+    time.sleep(10)
     try:
         cnpj_search_input = WebDriverWait(browser, 20).until(
             EC.presence_of_element_located((By.XPATH, "//*[@id='cnpj-raiz']"))
@@ -420,7 +394,7 @@ def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento:
         actions.move_to_element(search_btn).click().perform()
     print("Botao Pesquisar")
     
-    time.sleep(10)
+    time.sleep(15)
     try:
         result_num = WebDriverWait(browser, 20).until(
             EC.presence_of_element_located((By.XPATH, "//*[@data-html-qtdregistro]"))
@@ -461,7 +435,6 @@ def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento:
             
         time.sleep(2)
         
-        # Pegar tamanho da tabela e ver se da pra pegar o ultimo elemento com base no tamanho da tabela pelo xpath
         table_rows = result_body.find_elements(By.TAG_NAME, "tr")
         table_len = len(table_rows)
         print(f"TAMANHO DA TABELA {table_len}")
@@ -539,7 +512,8 @@ def get_posse_info(browser : webdriver.Chrome, actions: ActionChains, documento:
                         
                 except Exception as e:
                     print(f"ERRO: Falha ao tentar pegar as infos do head, detalhes: {e}")
-        
+        print(f"Lista com datas atuais: {lista_info}")
+        print(f"Lista geral: {lista_sec_info}")
         if len(lista_info) > 3:
             lista_format = lista_info[3:]
             resultado = [lista_format[0], lista_format[1], lista_format[2]]
@@ -603,7 +577,7 @@ def search_econta_doc(browser: webdriver.Chrome, actions: ActionChains, logging)
             print(doc)
             if index == 0:
                 time.sleep(2)
-                
+
                 pesquisa_menu_btn = WebDriverWait(browser, 20).until(
                     EC.presence_of_element_located((By.XPATH, "//a[@data-ascii='Pesquisa']"))
                 )
@@ -626,41 +600,38 @@ def search_econta_doc(browser: webdriver.Chrome, actions: ActionChains, logging)
                 print("Botao de CNPJ/Raiz")
             try:
                 nome_produto, nome, cnpj, resultado = get_posse_info(browser, actions, doc)
-                print(f"RESULTADO VALUE: {resultado}")
                 dados_extraidos.append((nome_produto, nome, cnpj, resultado[0], resultado[1], resultado[2]))
-                # if nome_produto == '' and nome == '' and len(resultado) == 0:
-                if nome_produto == '':
-                    dados_extraidos.append(('ERRO', 'ERRO', 'ERRO', 'ERRO', 'ERRO', 'ERRO'))
-                else:
-                    dados_extraidos.append((nome_produto, nome, cnpj, resultado[0], resultado[1], resultado[2]))
-                    print(f"DADOS EXTRAIDOS: {nome_produto}, {nome}, {cnpj}, {resultado}")
-                    # print(nome_produto, nome, cnpj, resultado)
-                    logging.info(f"DADOS EXTRAIDOS: {nome_produto}, {nome}, {cnpj}, {resultado}")
+                # if nome_produto == '':
+                #     dados_extraidos.append(('ERRO', 'ERRO', 'ERRO', 'ERRO', 'ERRO', 'ERRO'))
+                # else:
+                #     dados_extraidos.append((nome_produto, nome, cnpj, resultado[0], resultado[1], resultado[2]))
+                logging.info(f"DADOS EXTRAIDOS: {nome_produto}, {nome}, {cnpj}, {resultado}")
             except Exception as e:
                 print(f"ERRO: Falha buscar posse para doc {doc}, detalhes: {e}")
                 logging.error(f"ERRO: Falha buscar posse para doc {doc}, detalhes: {e}")
-    
+
         if ('', '', '', '', '','') in dados_extraidos:
             dados_extraidos.remove(('', '', '', '', '',''))
 
         print("Dados vazios removidos")
-        df[['NOME_PRODUTO', 'NOME', 'DOC', 'DATA_REF', 'INFO_POSSE', 'VALOR']] = pd.DataFrame(dados_extraidos, index = df.index)
+        print(f"DADOS EXTRAIDOS: {dados_extraidos}")
+        df[['NOME_PRODUTO', 'NOME', 'CNPJ', 'DATA_REF', 'INFO_POSSE', 'VALOR']] = pd.DataFrame(dados_extraidos, index = df.index)
         print("Dataframe criado")
-        df = df[['DOC', 'NOME', 'NOME_PRODUTO', 'DATA_REF', 'INFO_POSSE', 'VALOR']]
+        df = df[['CNPJ', 'NOME', 'NOME_PRODUTO', 'DATA_REF', 'INFO_POSSE', 'VALOR']]
         print("Dataframe filtrado")
         try:
             df_error = df[df['INFO_POSSE'] == 'ERRO']
             exportar_controle_qualidade(df_error, arquivo_error_out)
         except Exception as e:
             logging.error(f"Erro na criação do arquivo de relatório com os erros, Detalhes: {e}")
-        
+
         df = df[df['INFO_POSSE'] != 'ERRO']
         res =  exportar_controle_qualidade(df, arquivo_output)
         
         if res == "SUCESSO":
             total_buscados = len(df)
-            total_validados = df['DOC'].notna().sum()
-            total_nao_validados = df['DOC'].isna().sum()
+            total_validados = df['CNPJ'].notna().sum()
+            total_nao_validados = df['CNPJ'].isna().sum()
             logging.info(f"Total de documentos iniciais {total_inicial}")
             logging.info(f"Total de documentos buscados {total_buscados}")
             logging.info(f"Total de documentos validados {total_validados}")
